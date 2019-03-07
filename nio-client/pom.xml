@@ -12,6 +12,11 @@
 
     <artifactId>nio-client</artifactId>
     <packaging>jar</packaging>
+
+    <modules>
+        <module>../nio-common</module>
+    </modules>
+
     <build>
         <plugins>
             <plugin>

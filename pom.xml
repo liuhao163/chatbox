@@ -11,6 +11,7 @@
     <modules>
         <module>nio-client</module>
         <module>nio-server</module>
+        <module>nio-common</module>
     </modules>
 
 

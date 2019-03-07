@@ -52,15 +52,13 @@ public class Client {
             channel.configureBlocking(false);
             channel.register(selector, SelectionKey.OP_READ);
 
-            //在这里可以给服务端发送信息哦
-//            channel.write(ByteBuffer.wrap(clientInfo.getBytes("utf-8")));
-
             write(selector,channel,clientInfo);
         }
         if (key.isReadable()) {
             read(key);
             write(selector,(SocketChannel) key.channel(),"from client:"+System.currentTimeMillis());
         }
+
         if (key.isWritable()) {
             SocketChannel channel = (SocketChannel) key.channel();
             channel.write((ByteBuffer) key.attachment());
