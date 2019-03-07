@@ -12,6 +12,7 @@
         <module>nio-client</module>
         <module>nio-server</module>
         <module>nio-common</module>
+        <module>chatbox-service</module>
     </modules>
 
 

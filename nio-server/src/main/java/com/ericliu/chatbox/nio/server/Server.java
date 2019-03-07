@@ -1,5 +1,7 @@
 package com.ericliu.chatbox.nio.server;
 
+import com.ericliu.chatbox.nio.common.ChannelUtils;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -7,6 +9,9 @@ import java.nio.channels.*;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * @Author: liuhaoeric
@@ -15,6 +20,8 @@ import java.util.Set;
  */
 public class Server {
     public static void main(String[] args) throws Exception {
+
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
         new Server().start(8000);
     }
 
@@ -76,12 +83,17 @@ public class Server {
 
         if (key.isReadable()) {
             SocketChannel socketChannel = (SocketChannel) key.channel();
-            read(key);
+//            read(key);
+
+            String s = ChannelUtils.read(key, ByteBuffer.allocate(1024));
+
+            //todo parse xieyi
 
             String currentTime = new Date(System.currentTimeMillis()).toString();
             write(selector, socketChannel, currentTime);
         }
 
+        //
         if (key.isWritable()) {
             SocketChannel socketChannel = (SocketChannel) key.channel();
             socketChannel.write((ByteBuffer) key.attachment());
@@ -107,7 +119,6 @@ public class Server {
         byte[] data = readBuffer.array();
         String msg = new String(data).trim();
         System.out.println("The time server receive order : " + msg);
-
     }
 
 }
