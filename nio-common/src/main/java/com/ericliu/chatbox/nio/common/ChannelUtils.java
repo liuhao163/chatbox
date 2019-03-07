@@ -13,8 +13,7 @@ import java.nio.channels.SocketChannel;
  */
 public class ChannelUtils {
 
-    public static void write(Selector selector, SocketChannel channel, String msg) throws Exception {
-        ByteBuffer buffer = ByteBuffer.wrap(msg.getBytes("utf-8"));
+    public static void write(Selector selector, SocketChannel channel, ByteBuffer buffer) throws Exception {
         channel.register(selector, SelectionKey.OP_WRITE, buffer);
     }
 
