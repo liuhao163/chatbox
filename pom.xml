@@ -13,6 +13,10 @@
         <module>nio-server</module>
         <module>nio-common</module>
         <module>chatbox-service</module>
+        <module>netty-server</module>
+        <module>netty-client</module>
+
+
     </modules>
 
 
