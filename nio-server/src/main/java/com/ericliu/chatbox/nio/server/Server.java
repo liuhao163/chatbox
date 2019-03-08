@@ -1,6 +1,8 @@
 package com.ericliu.chatbox.nio.server;
 
 import com.ericliu.chatbox.nio.common.ChannelUtils;
+import com.ericliu.chatbox.service.EventDispatcher;
+import com.ericliu.chatbox.service.dto.MessageType;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -22,7 +24,7 @@ public class Server {
     public static void main(String[] args) throws Exception {
 
         ExecutorService executorService = Executors.newSingleThreadExecutor();
-        new Server().start(8000);
+        new Server().start(1234);
     }
 
     public void start(int port) throws Exception {
@@ -36,7 +38,7 @@ public class Server {
 
         try {
             while (true) {
-                selector.select(1000);
+                selector.select();
                 Set<SelectionKey> selectionKeys = selector.selectedKeys();
                 Iterator<SelectionKey> it = selectionKeys.iterator();
                 SelectionKey key = null;
@@ -83,14 +85,11 @@ public class Server {
 
         if (key.isReadable()) {
             SocketChannel socketChannel = (SocketChannel) key.channel();
-//            read(key);
+            String s = read(key);
+            if (s != null && s.length() > 0) {
+                EventDispatcher.get().dispatch(selector, socketChannel, s);
+            }
 
-            String s = ChannelUtils.read(key, ByteBuffer.allocate(1024));
-
-            //todo parse xieyi
-
-            String currentTime = new Date(System.currentTimeMillis()).toString();
-            write(selector, socketChannel, currentTime);
         }
 
         //
@@ -106,7 +105,7 @@ public class Server {
         channel.register(selector, SelectionKey.OP_WRITE, buffer);
     }
 
-    public void read(SelectionKey key) throws IOException {
+    public String read(SelectionKey key) throws IOException {
         SocketChannel sc = (SocketChannel) key.channel();
         ByteBuffer readBuffer = ByteBuffer.allocate(1024);
         int readBytes = sc.read(readBuffer);
@@ -114,11 +113,12 @@ public class Server {
             //对端链路关闭
             key.cancel();
             sc.close();
-            return;
+            return "";
         }
         byte[] data = readBuffer.array();
         String msg = new String(data).trim();
-        System.out.println("The time server receive order : " + msg);
+        System.out.println(msg);
+        return msg;
     }
 
 }

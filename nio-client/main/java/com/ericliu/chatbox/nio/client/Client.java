@@ -1,10 +1,18 @@
 package com.ericliu.chatbox.nio.client;
 
+import com.ericliu.chatbox.nio.common.ChannelUtils;
+import com.ericliu.chatbox.service.dto.MessageType;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
 import java.util.Iterator;
+import java.util.Scanner;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
 
 /**
  * @Author: liuhaoeric
@@ -13,82 +21,92 @@ import java.util.Iterator;
  */
 public class Client {
 
+    private int port;
+    private String name;
+
+
+    //boss
+    private ExecutorService boosLoop = Executors.newSingleThreadExecutor();
+
+    //
+    private ExecutorService childLoop = Executors.newFixedThreadPool(10);
+
+
+    private Selector selector;
+    private SocketChannel channel;
+
+    public Client(int port, String name) throws IOException {
+        this.port = port;
+        this.name = name;
+        this.selector = Selector.open();
+    }
+
     public static void main(String[] args) throws Exception {
-        new Client().connect(8000);
+        Client client = new Client(1234, args[0]);
+        client.connect();
+
+        Scanner sc = new Scanner(System.in);
+        while (sc.hasNext()) {
+            String str = sc.next();
+            client.write(str);
+        }
     }
 
-    public void connect(int serverPort) throws Exception {
-        SocketChannel channel = SocketChannel.open();
 
-        channel.configureBlocking(false);
-        channel.connect(new InetSocketAddress(serverPort));
-        Selector selector = Selector.open();
-        SelectionKey selectionKey = channel.register(selector, SelectionKey.OP_CONNECT, "chatbox-client-id-" + 1);
+    public SocketChannel connect() throws Exception {
+            try {
+                channel = SocketChannel.open();
+                channel.configureBlocking(false);
+                channel.connect(new InetSocketAddress(port));
+                channel.register(selector, SelectionKey.OP_CONNECT, name);
+                while (true) {
+                    try {
+                        selector.select();
+                        Iterator<SelectionKey> selectionKeySet = selector.selectedKeys().iterator();
+                        while (selectionKeySet.hasNext()) {
+                            SelectionKey key = selectionKeySet.next();
+                            selectionKeySet.remove();
+                            if (key.isConnectable()) {
+                                channel = (SocketChannel) key.channel();
+                                if (channel.isConnectionPending()) {
+                                    channel.finishConnect();
+                                }
 
-        while (true) {
-            selector.select();
+                                // 设置成非阻塞
+                                channel.configureBlocking(false);
+//                                channel.register(selector, SelectionKey.OP_READ);
+                                write("sender=" + key.attachment() + "||type=" + MessageType.register.ordinal());
+                            }
+                            if (key.isReadable()) {
+                                read(key);
+                            }
 
-            Iterator<SelectionKey> selectionKeySet = selector.selectedKeys().iterator();
-
-            while (selectionKeySet.hasNext()) {
-                SelectionKey key = selectionKeySet.next();
-                selectionKeySet.remove();
-                processServer(selector, key);
+                            if (key.isWritable()) {
+                                SocketChannel channel = (SocketChannel) key.channel();
+                                channel.write((ByteBuffer) key.attachment());
+                                channel.register(selector, SelectionKey.OP_READ);
+                            }
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-
-
-        }
+        return channel;
     }
 
-    private void processServer(Selector selector, SelectionKey key) throws Exception {
-        if (key.isConnectable()) {
-            SocketChannel channel = (SocketChannel) key.channel();
-            if (channel.isConnectionPending()) {
-                channel.finishConnect();
-            }
 
-            String clientInfo= (String) key.attachment();
-            // 设置成非阻塞
-            channel.configureBlocking(false);
-            channel.register(selector, SelectionKey.OP_READ);
-
-            write(selector,channel,clientInfo);
-        }
-        if (key.isReadable()) {
-            read(key);
-            write(selector,(SocketChannel) key.channel(),"from client:"+System.currentTimeMillis());
-        }
-
-        if (key.isWritable()) {
-            SocketChannel channel = (SocketChannel) key.channel();
-            channel.write((ByteBuffer) key.attachment());
-            channel.register(selector, SelectionKey.OP_READ);
-        }
-    }
-
-    private void write(Selector selector, SocketChannel channel, String msg) throws Exception {
+    private void write(String msg) throws Exception {
         ByteBuffer buffer = ByteBuffer.wrap(msg.getBytes("utf-8"));
-        channel.register(selector, SelectionKey.OP_WRITE, buffer);
+        ChannelUtils.write(this.selector, this.channel, buffer);
     }
 
     public void read(SelectionKey key) throws IOException {
-        SocketChannel sc = (SocketChannel) key.channel();
         ByteBuffer readBuffer = ByteBuffer.allocate(1024);
-        int readBytes = sc.read(readBuffer);
-        if (readBytes < 0) {
-            //对端链路关闭
-            key.cancel();
-            sc.close();
-            return;
-        }
-        byte[] data = readBuffer.array();
-        String msg = new String(data).trim();
-        System.out.println(msg);
-
+        System.out.println(ChannelUtils.read(key, readBuffer));
     }
-
-
-
 
 
 }

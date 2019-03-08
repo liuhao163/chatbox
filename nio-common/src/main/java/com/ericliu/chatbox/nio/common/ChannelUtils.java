@@ -20,9 +20,11 @@ public class ChannelUtils {
     public static String read(SelectionKey key, ByteBuffer readBuffer) throws IOException {
         readBuffer.flip();
         SocketChannel sc = (SocketChannel) key.channel();
-        sc.read(readBuffer);
+        int readBytes = sc.read(readBuffer);
         byte[] data = readBuffer.array();
         String msg = new String(data).trim();
+        System.out.printf(msg);
+
         return msg;
 
     }
