@@ -21,12 +21,32 @@ public class ChannelUtils {
         readBuffer.flip();
         SocketChannel sc = (SocketChannel) key.channel();
         int readBytes = sc.read(readBuffer);
+        if (readBytes <= 0) {
+            key.cancel();
+            return "";
+        }
         byte[] data = readBuffer.array();
         String msg = new String(data).trim();
         System.out.printf(msg);
 
         return msg;
 
+    }
+
+
+    public static String read(SelectionKey key) throws IOException {
+        SocketChannel sc = (SocketChannel) key.channel();
+        ByteBuffer readBuffer = ByteBuffer.allocate(1024);
+        int readBytes = sc.read(readBuffer);
+        if (readBytes < 0) {
+            //对端链路关闭
+            key.cancel();
+            return "";
+        }
+        byte[] data = readBuffer.array();
+        String msg = new String(data).trim();
+//        System.out.println(msg);
+        return msg;
     }
 
 }

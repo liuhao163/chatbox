@@ -87,7 +87,7 @@ public class Server {
             SocketChannel socketChannel = (SocketChannel) key.channel();
             String s = read(key);
             if (s != null && s.length() > 0) {
-                EventDispatcher.get().dispatch(selector, socketChannel, s);
+                EventDispatcher.get().dispatch(selector,socketChannel, s);
             }
 
         }
@@ -111,8 +111,12 @@ public class Server {
         int readBytes = sc.read(readBuffer);
         if (readBytes < 0) {
             //对端链路关闭
-            key.cancel();
-            sc.close();
+            try {
+                key.cancel();
+                sc.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             return "";
         }
         byte[] data = readBuffer.array();

@@ -77,17 +77,17 @@ public class EventDispatcher {
 
         switch (message.getMessageType()) {
             case sender:
-                System.out.println("发送信息："+msg);
+                System.out.println("发送信息：" + msg);
                 processSend(selector, message);
                 break;
             case receive:
                 break;
             case register:
-                System.out.println("注册信息："+msg);
+                System.out.println("注册信息：" + msg);
                 processRegister(message, sc);
                 break;
             case unregister:
-                System.out.println("离开信息："+msg);
+                System.out.println("离开信息：" + msg);
                 processUnRegister(message);
                 break;
             default:
@@ -108,11 +108,10 @@ public class EventDispatcher {
     public void processSend(Selector selector, Message registerMessage) {
         SocketChannel channel = userConnMap.get(registerMessage.getReceiver().getName());
         if (channel != null) {
-            String s = "sender=" + registerMessage.getSender() + "||recv=" + registerMessage.getReceiver().getName() + "||body=" + registerMessage.getBody() + "||time=" + System.currentTimeMillis() + "||type=" + MessageType.sender.ordinal();
+            String s = "sender=" + registerMessage.getSender().getName() + "||recv=" + registerMessage.getReceiver().getName() + "||body=" + registerMessage.getBody() + "||time=" + System.currentTimeMillis() + "||type=" + MessageType.sender.ordinal();
 
             try {
-                channel.write(ByteBuffer.wrap(s.getBytes("utf-8")));
-                channel.register(selector, SelectionKey.OP_WRITE);
+                channel.register(selector, SelectionKey.OP_WRITE, ByteBuffer.wrap(s.getBytes("utf-8")));
             } catch (IOException e) {
                 e.printStackTrace();
             }
