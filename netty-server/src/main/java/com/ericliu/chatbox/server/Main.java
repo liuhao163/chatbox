@@ -147,6 +147,5 @@ public class Main {
                 && useEpollNativeSelector
                 && Epoll.isAvailable();
     }
-
 }
 

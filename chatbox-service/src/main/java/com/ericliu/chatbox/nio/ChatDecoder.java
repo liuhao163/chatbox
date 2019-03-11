@@ -18,7 +18,7 @@ public class ChatDecoder extends LengthFieldBasedFrameDecoder {
 
     private static final Logger log = LoggerFactory.getLogger(ChatDecoder.class);
 
-    private static final int FRAME_MAX_LENGTH = 16777216;
+    private static final int FRAME_MAX_LENGTH = 1024;
 
     public ChatDecoder() {
         //FRAME_MAX_LENGTH 单个包最大长度
@@ -26,7 +26,7 @@ public class ChatDecoder extends LengthFieldBasedFrameDecoder {
         //lengthFieldLength 数据长度字段的所占的字节数
         //lengthAdjustment 满足lengthAdjustment=bytes.length-lengthFieldOffset-lengthFieldLength-body.bytes
         //initialBytesToStrip 表示从整个包第一个字节开始，向后忽略的字节数
-        super(FRAME_MAX_LENGTH, 0, 4, 0, 4);
+        super(FRAME_MAX_LENGTH, 0, 4, 0, 0);
     }
 
     @Override
