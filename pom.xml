@@ -15,6 +15,7 @@
         <module>chatbox-service</module>
         <module>netty-server</module>
         <module>netty-client</module>
+        <module>checkbox-common</module>
 
 
     </modules>
