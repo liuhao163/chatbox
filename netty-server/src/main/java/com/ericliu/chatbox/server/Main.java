@@ -82,6 +82,7 @@ public class Main {
 
         @Override
         public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
+            System.out.println("====register");
             super.channelRegistered(ctx);
         }
 
@@ -92,6 +93,7 @@ public class Main {
 
         @Override
         public void channelActive(ChannelHandlerContext ctx) throws Exception {
+            System.out.println("====active");
             super.channelActive(ctx);
         }
 
@@ -102,6 +104,7 @@ public class Main {
 
         @Override
         public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+            System.out.println("====iserEvent");
             super.userEventTriggered(ctx, evt);
         }
 
