@@ -1,7 +1,6 @@
 package com.ericliu.chatbox.service;
 
-import com.ericliu.chatbox.model.Protocal;
-import com.ericliu.chatbox.model.User;
+import com.ericliu.chatbox.model.*;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +39,17 @@ public class ChatEventDispatcher {
             case leave:
                 break;
             case sendmsg:
+                Message message = protocal.serializData(Message.class);
+                Channel toChan = Container.getInstance().getUser(message.getTo());
+
+                Protocal sendProt = new Protocal();
+                sendProt.setHeader(new ProtocalHeader(protocal.getData().length, EventType.receiveUser)).setData(protocal.getData());
+                toChan.writeAndFlush(sendProt);
+                logger.info("server tranrs from:{}-->to:{}--->message:{}", message.getFrom(), message.getTo(), message.getMessage());
+                break;
+            case receiveUser:
+                Message receiveMsg = protocal.serializData(Message.class);
+                logger.info("server tranrs from:{}-->to:{}--->message:{}", receiveMsg.getFrom(), receiveMsg.getTo(), receiveMsg.getMessage());
                 break;
             default:
                 break;

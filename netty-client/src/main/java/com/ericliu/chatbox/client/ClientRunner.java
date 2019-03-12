@@ -18,15 +18,24 @@ public class ClientRunner {
         Scanner sc = new Scanner(System.in);
         while (sc.hasNext()) {
             String str = sc.next();
-            Protocal protocal=new Protocal();
-
-            byte b=0x00;
-            ProtocalHeader header=new ProtocalHeader(b,SerializableType.JSON,str.length(),EventType.sendmsg);
-            protocal.setHeader(header);
-            try {
-                protocal.setData(str.getBytes("utf-8"));
-            } catch (UnsupportedEncodingException e) {
+            String[] content = str.split("@");
+            if (content.length < 2) {
+                continue;
             }
+
+            String toName = content[0];
+            User to = new User(toName);
+
+            Protocal protocal = new Protocal();
+            byte b = 0x00;
+            ProtocalHeader header = new ProtocalHeader(b, SerializableType.JSON, str.length(), EventType.sendmsg);
+            protocal.setHeader(header);
+
+            Message message = new Message();
+            message.setFrom(chatBoxClient.getUser());
+            message.setTo(to);
+            message.setMessage(content[1]);
+            protocal.setData(protocal.dataToJsonBytes(message));
 
             channelFuture.channel().writeAndFlush(protocal);
         }

@@ -7,6 +7,7 @@ import com.ericliu.chatbox.model.ProtocalHeader;
 import com.ericliu.chatbox.model.User;
 import com.ericliu.chatbox.nio.ChatProtocalDecoder;
 import com.ericliu.chatbox.nio.ChatProtocalEncoder;
+import com.ericliu.chatbox.service.ChatEventDispatcher;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -47,6 +48,10 @@ public class ChatBoxClient {
     public ChatBoxClient(User user) {
         this.user = user;
         init();
+    }
+
+    public User getUser() {
+        return user;
     }
 
     private DefaultEventExecutorGroup defaultEventExecutorGroup = new DefaultEventExecutorGroup(
@@ -96,7 +101,7 @@ public class ChatBoxClient {
         @Override
         protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
             Protocal protocal = (Protocal) msg;
-            System.out.println(protocal);
+            ChatEventDispatcher.get().dispatch(protocal, ctx.channel());
         }
     }
 
