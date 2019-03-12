@@ -2,8 +2,12 @@ package com.ericliu.chatbox.server;
 
 import com.ericliu.chatbox.common.RemotingUtil;
 import com.ericliu.chatbox.model.Protocal;
+import com.ericliu.chatbox.model.User;
 import com.ericliu.chatbox.nio.ChatProtocalDecoder;
 import com.ericliu.chatbox.nio.ChatProtocalEncoder;
+import com.ericliu.chatbox.nio.NettyAttributeKey;
+import com.ericliu.chatbox.service.ChatEventDispatcher;
+import com.ericliu.chatbox.service.Container;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.*;
@@ -12,13 +16,13 @@ import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.string.StringDecoder;
-import io.netty.handler.codec.string.StringEncoder;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.handler.timeout.IdleStateHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
@@ -28,6 +32,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author <a href=mailto:ericliu@fivewh.com>ericliu</a>,Date:2019/3/11
  */
 public class ChatBoxServer {
+
+    private static Logger logger = LoggerFactory.getLogger(ChatBoxServer.class);
 
     private static boolean useEpollNativeSelector = false;
 
@@ -96,7 +102,7 @@ public class ChatBoxServer {
         @Override
         protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
             Protocal protocal = (Protocal) msg;
-            System.out.println(protocal.serializeString());
+            ChatEventDispatcher.get().dispatch(protocal, ctx.channel());
         }
     }
 
@@ -107,18 +113,29 @@ public class ChatBoxServer {
         @Override
         public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
             System.out.println("====>channelRegistered");
+
+            User user = ctx.channel().attr(NettyAttributeKey.ATTR_KEY_CHAT_USER).get();
+            if (user != null) {
+                logger.info("用户:{}来注册channelRegistered，地址是{}", user, ctx.channel().remoteAddress());
+                Container.getInstance().setUser(user, ctx.channel());
+            }
+
+
             super.channelRegistered(ctx);
         }
 
         @Override
         public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
             System.out.println("====>channelUnregistered");
+
+            //remove
+
             super.channelUnregistered(ctx);
         }
 
         @Override
         public void channelActive(ChannelHandlerContext ctx) throws Exception {
-            System.out.println("====>channelActive");
+
             super.channelActive(ctx);
         }
 

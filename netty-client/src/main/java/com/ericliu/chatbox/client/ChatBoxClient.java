@@ -1,7 +1,10 @@
 package com.ericliu.chatbox.client;
 
 import com.ericliu.chatbox.common.RemotingHelper;
+import com.ericliu.chatbox.model.EventType;
 import com.ericliu.chatbox.model.Protocal;
+import com.ericliu.chatbox.model.ProtocalHeader;
+import com.ericliu.chatbox.model.User;
 import com.ericliu.chatbox.nio.ChatProtocalDecoder;
 import com.ericliu.chatbox.nio.ChatProtocalEncoder;
 import io.netty.bootstrap.Bootstrap;
@@ -9,8 +12,6 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.codec.string.StringDecoder;
-import io.netty.handler.codec.string.StringEncoder;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.handler.timeout.IdleStateHandler;
@@ -27,7 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class ChatBoxClient {
 
-    private Logger log = LoggerFactory.getLogger(ChatBoxClient.class);
+    private Logger logger = LoggerFactory.getLogger(ChatBoxClient.class);
 
     private Bootstrap bootstrap = new Bootstrap();
 
@@ -40,8 +41,11 @@ public class ChatBoxClient {
         }
     });
 
+    private User user;
 
-    public ChatBoxClient() {
+
+    public ChatBoxClient(User user) {
+        this.user = user;
         init();
     }
 
@@ -80,7 +84,7 @@ public class ChatBoxClient {
                 });
     }
 
-    public ChannelFuture start(String addr){
+    public ChannelFuture start(String addr) {
         ChannelFuture channelFuture = this.bootstrap.connect(RemotingHelper.string2SocketAddress(addr));
 
         return channelFuture;
@@ -91,7 +95,7 @@ public class ChatBoxClient {
 
         @Override
         protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
-            Protocal protocal=(Protocal) msg;
+            Protocal protocal = (Protocal) msg;
             System.out.println(protocal);
         }
     }
@@ -102,9 +106,17 @@ public class ChatBoxClient {
         @Override
         public void connect(ChannelHandlerContext ctx, SocketAddress remoteAddress, SocketAddress localAddress,
                             ChannelPromise promise) throws Exception {
-            System.out.println("====>connect");
-            super.connect(ctx, remoteAddress, localAddress, promise);
+            logger.info("====>user {} connect now connect.", user);
 
+            Protocal protocal = new Protocal();
+
+            byte[] data = protocal.dataToJsonBytes(user);
+            protocal.setHeader(new ProtocalHeader(data.length, EventType.register));
+            protocal.setData(data);
+
+            super.connect(ctx, remoteAddress, localAddress, promise);
+            ctx.channel().writeAndFlush(protocal);
+            logger.info("====>user {} connect now connect.finish", user);
         }
 
         @Override
@@ -134,7 +146,6 @@ public class ChatBoxClient {
             } else {
                 super.userEventTriggered(ctx, evt);
             }
-
 
             ctx.fireUserEventTriggered(evt);
         }

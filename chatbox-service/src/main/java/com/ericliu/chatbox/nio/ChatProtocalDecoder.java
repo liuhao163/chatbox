@@ -18,15 +18,15 @@ public class ChatProtocalDecoder extends LengthFieldBasedFrameDecoder {
 
     private static final Logger log = LoggerFactory.getLogger(ChatProtocalDecoder.class);
 
-    private static final int FRAME_MAX_LENGTH = 2048;
+    private static final int FRAME_MAX_LENGTH = 65535;
 
     public ChatProtocalDecoder() {
         //FRAME_MAX_LENGTH 单个包最大长度
         //lengthFieldOffset 表示数据长度字段开始的偏移量
-        //lengthFieldLength 数据长度字段的所占的字节数
+        //lengthFieldLength 数据长度字段的所占的字节数 30-5-4-17
         //lengthAdjustment 满足lengthAdjustment=bytes.length-lengthFieldOffset-lengthFieldLength-body.bytes
         //initialBytesToStrip 表示从整个包第一个字节开始，向后忽略的字节数
-        super(FRAME_MAX_LENGTH, 5, 4, 0, 0);
+        super(FRAME_MAX_LENGTH, 5, 4, 4, 0);
     }
 
     @Override

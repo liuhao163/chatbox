@@ -1,8 +1,6 @@
 package com.ericliu.chatbox.client;
 
-import com.ericliu.chatbox.model.ProtocalHeader;
-import com.ericliu.chatbox.model.Protocal;
-import com.ericliu.chatbox.model.SerializableType;
+import com.ericliu.chatbox.model.*;
 import io.netty.channel.ChannelFuture;
 
 import java.io.UnsupportedEncodingException;
@@ -14,7 +12,7 @@ import java.util.Scanner;
 public class ClientRunner {
 
     public static void main(String[] args) {
-        ChatBoxClient chatBoxClient = new ChatBoxClient();
+        ChatBoxClient chatBoxClient = new ChatBoxClient(new User(args[0]));
         ChannelFuture channelFuture = chatBoxClient.start("127.0.0.1:1234");
 
         Scanner sc = new Scanner(System.in);
@@ -23,7 +21,7 @@ public class ClientRunner {
             Protocal protocal=new Protocal();
 
             byte b=0x00;
-            ProtocalHeader header=new ProtocalHeader(b,SerializableType.JSON,str.length());
+            ProtocalHeader header=new ProtocalHeader(b,SerializableType.JSON,str.length(),EventType.sendmsg);
             protocal.setHeader(header);
             try {
                 protocal.setData(str.getBytes("utf-8"));

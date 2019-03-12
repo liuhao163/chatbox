@@ -17,7 +17,7 @@ public class Protocal implements Serializable {
     public <T> T serializData(Class<T> classOfT) {
         try {
             String dataStr = new String(data, "utf-8");
-            switch (header.getDataType()) {
+            switch (header.getSerializalbeType()) {
                 case JSON:
                     return JSON.parseObject(dataStr, classOfT);
                 default:
@@ -27,6 +27,10 @@ public class Protocal implements Serializable {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public <T> byte[] dataToJsonBytes(T object) {
+        return JSON.toJSONBytes(object);
     }
 
     public String serializeString() {
@@ -42,6 +46,8 @@ public class Protocal implements Serializable {
         int headerData = byteBuffer.getInt();
         byte dataType = byteBuffer.get();
         int contentLength = byteBuffer.getInt();
+        int eventType = byteBuffer.getInt();
+
         byte[] bodyData = null;
         if (contentLength > 0) {
             bodyData = new byte[contentLength];
@@ -49,7 +55,7 @@ public class Protocal implements Serializable {
         }
 
         Protocal ret = new Protocal();
-        ProtocalHeader chatHeader = new ProtocalHeader(headerData, SerializableType.valueOfCode(dataType), contentLength);
+        ProtocalHeader chatHeader = new ProtocalHeader(headerData, SerializableType.valueOfCode(dataType), contentLength, EventType.values()[eventType]);
         ret.setHeader(chatHeader);
         ret.setData(bodyData);
 

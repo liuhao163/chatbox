@@ -1,8 +1,5 @@
 package com.ericliu.chatbox.model;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-
 import java.io.Serializable;
 
 /**
@@ -11,24 +8,35 @@ import java.io.Serializable;
 public class ProtocalHeader implements Serializable {
 
     private int headData = 0X76;
-    private SerializableType dataType;
+    private SerializableType serializalbeType = SerializableType.JSON;
     private int length;
+    private EventType eventType;
 
-    public ProtocalHeader(int headData, SerializableType dataType, int length) {
-        this.headData = headData;
-        this.dataType = dataType;
+    public ProtocalHeader(int length, EventType eventType) {
         this.length = length;
+        this.eventType = eventType;
+    }
+
+    public ProtocalHeader(int headData, SerializableType serializalbeType, int length, EventType eventType) {
+        this.headData = headData;
+        this.serializalbeType = serializalbeType;
+        this.length = length;
+        this.eventType = eventType;
     }
 
     public int getHeadData() {
         return headData;
     }
 
-    public SerializableType getDataType() {
-        return dataType;
+    public SerializableType getSerializalbeType() {
+        return serializalbeType;
     }
 
     public int getLength() {
         return length;
+    }
+
+    public EventType getEventType() {
+        return eventType;
     }
 }

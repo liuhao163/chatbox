@@ -16,12 +16,11 @@ public class ChatProtocalEncoder extends MessageToByteEncoder<Protocal> {
 
     private static final Logger log = LoggerFactory.getLogger(ChatProtocalEncoder.class);
 
-    private static final int FRAME_MAX_LENGTH = 1024;
-
     protected void encode(ChannelHandlerContext ctx, Protocal protocal, ByteBuf out) {
         out.writeInt(protocal.getHeader().getHeadData());
-        out.writeByte(protocal.getHeader().getDataType().getCode());
+        out.writeByte(protocal.getHeader().getSerializalbeType().getCode());
         out.writeInt(protocal.getData().length);
+        out.writeInt(protocal.getHeader().getEventType().ordinal());
         out.writeBytes(protocal.getData());
     }
 }
