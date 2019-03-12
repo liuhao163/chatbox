@@ -1,6 +1,6 @@
 package com.ericliu.chatbox.server;
 
-import com.ericliu.chatbox.nio.ChatDecoder;
+import com.ericliu.chatbox.common.RemotingUtil;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.*;
@@ -26,8 +26,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class Main {
 
-    private static ThreadPerChannelEventLoopGroup bossGroup;
-
     private static boolean useEpollNativeSelector = false;
 
     public static void main(String[] args) throws InterruptedException {
@@ -44,7 +42,6 @@ public class Main {
                     .option(ChannelOption.SO_BACKLOG, 1024)
                     .option(ChannelOption.SO_REUSEADDR, true) //SO_REUSEADDR 允许重复使用本地地址和端口
                     .option(ChannelOption.SO_KEEPALIVE, false)
-
                     .childOption(ChannelOption.TCP_NODELAY, true)
                     .childOption(ChannelOption.SO_SNDBUF, 65535)
                     .childOption(ChannelOption.SO_RCVBUF, 65535)
@@ -56,7 +53,7 @@ public class Main {
                             ch.pipeline()
                                     .addLast(defaultEventExecutorGroup,
                                             new StringEncoder(),
-                                            new ChatDecoder(),
+                                            new StringDecoder(),
                                             new IdleStateHandler(0, 0, 100),
                                             new NettyConnectManageHandler(),
                                             new NettyServerHandler()

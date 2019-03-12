@@ -9,15 +9,13 @@
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
     <modules>
-        <module>nio-client</module>
-        <module>nio-server</module>
-        <module>nio-common</module>
+        <!--<module>nio-client</module>-->
+        <!--<module>nio-server</module>-->
+        <!--<module>nio-common</module>-->
         <module>chatbox-service</module>
         <module>netty-server</module>
         <module>netty-client</module>
-        <module>checkbox-common</module>
-
-
+        <module>chatbox-common</module>
     </modules>
 
 
