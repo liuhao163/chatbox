@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * @author <a href=mailto:ericliu@fivewh.com>ericliu</a>,Date:2019/3/11
  */
-public class Main {
+public class ChatBoxServer {
 
     private static boolean useEpollNativeSelector = false;
 
