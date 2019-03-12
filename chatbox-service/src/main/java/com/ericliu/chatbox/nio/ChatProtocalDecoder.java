@@ -1,6 +1,5 @@
 package com.ericliu.chatbox.nio;
 
-import com.ericliu.chatbox.model.ChatMessage;
 import com.ericliu.chatbox.model.Protocal;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -31,20 +30,14 @@ public class ChatProtocalDecoder extends LengthFieldBasedFrameDecoder {
     }
 
     @Override
-    protected Object decode(ChannelHandlerContext ctx, ByteBuf in) throws Exception {
+    protected Protocal decode(ChannelHandlerContext ctx, ByteBuf in) throws Exception {
         ByteBuf frame = (ByteBuf) super.decode(ctx, in);
         if (null == frame) {
             return null;
         }
 
-
-
         ByteBuffer byteBuffer = frame.nioBuffer();
-//        byteBuffer.get()
 
-        Protocal protocal=Protocal.decode(byteBuffer);
-
-//        Protocal protocal=Protocal.decode(in);
-        return protocal;
+        return new Protocal().decode(byteBuffer);
     }
 }

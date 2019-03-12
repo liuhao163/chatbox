@@ -20,7 +20,7 @@ public class ChatProtocalEncoder extends MessageToByteEncoder<Protocal> {
 
     protected void encode(ChannelHandlerContext ctx, Protocal protocal, ByteBuf out) {
         out.writeInt(protocal.getHeader().getHeadData());
-        out.writeByte(protocal.getHeader().getDataType());
+        out.writeByte(protocal.getHeader().getDataType().getCode());
         out.writeInt(protocal.getData().length);
         out.writeBytes(protocal.getData());
     }

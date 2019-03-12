@@ -1,7 +1,8 @@
 package com.ericliu.chatbox.model;
 
-import io.netty.buffer.ByteBuf;
+import com.alibaba.fastjson.JSON;
 
+import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -9,41 +10,35 @@ import java.util.Arrays;
 /**
  * @author <a href=mailto:ericliu@fivewh.com>ericliu</a>,Date:2019/3/12
  */
-public class Protocal {
-    private ChatHeader header;
+public class Protocal implements Serializable {
+    private ProtocalHeader header;
     private byte[] data;
 
-    public static Protocal decode(ByteBuf byteBuffer) {
-//        int length = byteBuffer.limit();
-        int headerData = byteBuffer.readInt();
-        byte dataType = byteBuffer.readByte();
-        int contentLength = byteBuffer.readInt();
-        byte[] bodyData = new byte[contentLength];
-        byteBuffer.readBytes(bodyData);
-//        if (bodyLength > 0) {
-//            bodyData = new byte[bodyLength];
-//            byteBuffer.get(bodyData);
-//        }
-
-        Protocal ret = new Protocal();
-        ChatHeader chatHeader = new ChatHeader();
-        chatHeader.setHeadData(headerData);
-        chatHeader.setDataType(dataType);
-        chatHeader.setLength(contentLength);
-        ret.setHeader(chatHeader);
-        ret.setData(bodyData);
-
+    public <T> T serializData(Class<T> classOfT) {
         try {
-            System.out.println(new String(bodyData, "utf-8"));
+            String dataStr = new String(data, "utf-8");
+            switch (header.getDataType()) {
+                case JSON:
+                    return JSON.parseObject(dataStr, classOfT);
+                default:
+                    break;
+            }
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
-
-        return ret;
+        return null;
     }
 
+    public String serializeString() {
+        try {
+            return new String(data, "utf-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
-    public static Protocal decode(ByteBuffer byteBuffer) {
+    public Protocal decode(ByteBuffer byteBuffer) {
         int headerData = byteBuffer.getInt();
         byte dataType = byteBuffer.get();
         int contentLength = byteBuffer.getInt();
@@ -54,27 +49,18 @@ public class Protocal {
         }
 
         Protocal ret = new Protocal();
-        ChatHeader chatHeader = new ChatHeader();
-        chatHeader.setHeadData(headerData);
-        chatHeader.setDataType(dataType);
-        chatHeader.setLength(contentLength);
+        ProtocalHeader chatHeader = new ProtocalHeader(headerData, SerializableType.valueOfCode(dataType), contentLength);
         ret.setHeader(chatHeader);
         ret.setData(bodyData);
-
-        try {
-            System.out.println(new String(bodyData, "utf-8"));
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
 
         return ret;
     }
 
-    public ChatHeader getHeader() {
+    public ProtocalHeader getHeader() {
         return header;
     }
 
-    public Protocal setHeader(ChatHeader header) {
+    public Protocal setHeader(ProtocalHeader header) {
         this.header = header;
         return this;
     }

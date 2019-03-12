@@ -31,46 +31,63 @@ public class ChatBoxServer {
 
     private static boolean useEpollNativeSelector = false;
 
-    public static void main(String[] args) throws InterruptedException {
-        NioEventLoopGroup defaultEventExecutorGroup = new NioEventLoopGroup(100);
-        NioEventLoopGroup bossGroup = new NioEventLoopGroup(1);
-        NioEventLoopGroup workerGroup = new NioEventLoopGroup(100);
+    private ChannelFuture f;
 
+    private ServerBootstrap serverBootstrap;
+
+    private int port;
+
+    private NioEventLoopGroup defaultEventExecutorGroup = new NioEventLoopGroup(100);
+    private NioEventLoopGroup bossGroup = new NioEventLoopGroup(1);
+    private NioEventLoopGroup workerGroup = new NioEventLoopGroup(100);
+
+    public ChatBoxServer(int port) {
+        init(port);
+    }
+
+    private void init(int port) {
+        this.port = port;
+        serverBootstrap = new ServerBootstrap()
+                .group(bossGroup, workerGroup)
+                .channel(useEpoll() ? EpollServerSocketChannel.class : NioServerSocketChannel.class)
+                .localAddress(new InetSocketAddress(port))//port
+
+                .option(ChannelOption.SO_BACKLOG, 1024)
+                .option(ChannelOption.SO_REUSEADDR, true) //SO_REUSEADDR 允许重复使用本地地址和端口
+                .option(ChannelOption.SO_KEEPALIVE, false)
+                .childOption(ChannelOption.TCP_NODELAY, true)
+                .childOption(ChannelOption.SO_SNDBUF, 65535)
+                .childOption(ChannelOption.SO_RCVBUF, 65535)
+
+                .handler(new LoggingHandler(LogLevel.INFO))
+                .childHandler(new ChannelInitializer<SocketChannel>() {
+                    @Override
+                    public void initChannel(SocketChannel ch) throws Exception {
+                        ch.pipeline()
+                                .addLast(defaultEventExecutorGroup,
+                                        new ChatProtocalEncoder(),
+                                        new ChatProtocalDecoder(),
+                                        new IdleStateHandler(0, 0, 100),
+                                        new NettyConnectManageHandler(),
+                                        new NettyServerHandler()
+                                );
+                    }
+                });
+        serverBootstrap.childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
+
+    }
+
+    public void listerner() throws InterruptedException {
+        f = serverBootstrap.bind().sync();
+    }
+
+    public void close() throws InterruptedException {
         try {
-            ServerBootstrap serverBootstrap = new ServerBootstrap()
-                    .group(bossGroup, workerGroup)
-                    .channel(useEpoll() ? EpollServerSocketChannel.class : NioServerSocketChannel.class)
-                    .localAddress(new InetSocketAddress(1234))//port
-
-                    .option(ChannelOption.SO_BACKLOG, 1024)
-                    .option(ChannelOption.SO_REUSEADDR, true) //SO_REUSEADDR 允许重复使用本地地址和端口
-                    .option(ChannelOption.SO_KEEPALIVE, false)
-                    .childOption(ChannelOption.TCP_NODELAY, true)
-                    .childOption(ChannelOption.SO_SNDBUF, 65535)
-                    .childOption(ChannelOption.SO_RCVBUF, 65535)
-
-                    .handler(new LoggingHandler(LogLevel.INFO))
-                    .childHandler(new ChannelInitializer<SocketChannel>() {
-                        @Override
-                        public void initChannel(SocketChannel ch) throws Exception {
-                            ch.pipeline()
-                                    .addLast(defaultEventExecutorGroup,
-                                            new ChatProtocalEncoder(),
-                                            new ChatProtocalDecoder(),
-                                            new IdleStateHandler(0, 0, 100),
-                                            new NettyConnectManageHandler(),
-                                            new NettyServerHandler()
-                                    );
-                        }
-                    });
-            serverBootstrap.childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
-
-            ChannelFuture f = serverBootstrap.bind().sync();
-
             f.channel().closeFuture().sync();
         } finally {
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
+            defaultEventExecutorGroup.shutdownGracefully();
         }
     }
 
@@ -78,10 +95,11 @@ public class ChatBoxServer {
 
         @Override
         protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
-            Protocal protocal=(Protocal) msg;
-            System.out.println(protocal);
+            Protocal protocal = (Protocal) msg;
+            System.out.println(protocal.serializeString());
         }
     }
+
     static class NettyConnectManageHandler extends ChannelDuplexHandler {
 
         private AtomicInteger lossConnectCount = new AtomicInteger(0);
