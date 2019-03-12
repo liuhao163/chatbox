@@ -1,6 +1,9 @@
 package com.ericliu.chatbox.client;
 
 import com.ericliu.chatbox.common.RemotingHelper;
+import com.ericliu.chatbox.model.Protocal;
+import com.ericliu.chatbox.nio.ChatProtocalDecoder;
+import com.ericliu.chatbox.nio.ChatProtocalEncoder;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -68,8 +71,8 @@ public class ChatBoxClient {
                         ChannelPipeline pipeline = ch.pipeline();
                         pipeline.addLast(
                                 defaultEventExecutorGroup,
-                                new StringEncoder(),
-                                new StringDecoder(),
+                                new ChatProtocalEncoder(),
+                                new ChatProtocalDecoder(),
                                 new IdleStateHandler(0, 0, 100),
                                 new NettyConnectManageHandler(),
                                 new NettyClientHandler());
@@ -84,11 +87,12 @@ public class ChatBoxClient {
     }
 
 
-    class NettyClientHandler extends SimpleChannelInboundHandler<String> {
+    class NettyClientHandler extends SimpleChannelInboundHandler {
 
         @Override
-        protected void channelRead0(ChannelHandlerContext ctx, String msg) throws Exception {
-            System.out.println(msg);
+        protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
+            Protocal protocal=(Protocal) msg;
+            System.out.println(protocal);
         }
     }
 

@@ -1,6 +1,7 @@
 package com.ericliu.chatbox.nio;
 
 import com.ericliu.chatbox.model.ChatMessage;
+import com.ericliu.chatbox.model.Protocal;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
@@ -14,19 +15,19 @@ import java.nio.ByteBuffer;
  *
  * @author <a href=mailto:ericliu@fivewh.com>ericliu</a>,Date:2019/3/11
  */
-public class ChatDecoder extends LengthFieldBasedFrameDecoder {
+public class ChatProtocalDecoder extends LengthFieldBasedFrameDecoder {
 
-    private static final Logger log = LoggerFactory.getLogger(ChatDecoder.class);
+    private static final Logger log = LoggerFactory.getLogger(ChatProtocalDecoder.class);
 
-    private static final int FRAME_MAX_LENGTH = 1024;
+    private static final int FRAME_MAX_LENGTH = 2048;
 
-    public ChatDecoder() {
+    public ChatProtocalDecoder() {
         //FRAME_MAX_LENGTH 单个包最大长度
         //lengthFieldOffset 表示数据长度字段开始的偏移量
         //lengthFieldLength 数据长度字段的所占的字节数
         //lengthAdjustment 满足lengthAdjustment=bytes.length-lengthFieldOffset-lengthFieldLength-body.bytes
         //initialBytesToStrip 表示从整个包第一个字节开始，向后忽略的字节数
-        super(FRAME_MAX_LENGTH, 0, 4, 0, 0);
+        super(FRAME_MAX_LENGTH, 5, 4, 0, 0);
     }
 
     @Override
@@ -36,8 +37,14 @@ public class ChatDecoder extends LengthFieldBasedFrameDecoder {
             return null;
         }
 
-        ByteBuffer byteBuffer = frame.nioBuffer();
 
-        return ChatMessage.decode(byteBuffer);
+
+        ByteBuffer byteBuffer = frame.nioBuffer();
+//        byteBuffer.get()
+
+        Protocal protocal=Protocal.decode(byteBuffer);
+
+//        Protocal protocal=Protocal.decode(in);
+        return protocal;
     }
 }

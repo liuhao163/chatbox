@@ -1,6 +1,9 @@
 package com.ericliu.chatbox.server;
 
 import com.ericliu.chatbox.common.RemotingUtil;
+import com.ericliu.chatbox.model.Protocal;
+import com.ericliu.chatbox.nio.ChatProtocalDecoder;
+import com.ericliu.chatbox.nio.ChatProtocalEncoder;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.*;
@@ -52,8 +55,8 @@ public class ChatBoxServer {
                         public void initChannel(SocketChannel ch) throws Exception {
                             ch.pipeline()
                                     .addLast(defaultEventExecutorGroup,
-                                            new StringEncoder(),
-                                            new StringDecoder(),
+                                            new ChatProtocalEncoder(),
+                                            new ChatProtocalDecoder(),
                                             new IdleStateHandler(0, 0, 100),
                                             new NettyConnectManageHandler(),
                                             new NettyServerHandler()
@@ -71,14 +74,14 @@ public class ChatBoxServer {
         }
     }
 
-    static class NettyServerHandler extends SimpleChannelInboundHandler<String> {
+    static class NettyServerHandler extends SimpleChannelInboundHandler {
 
         @Override
-        protected void channelRead0(ChannelHandlerContext channelHandlerContext, String message) throws Exception {
-            System.out.println(message);
+        protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
+            Protocal protocal=(Protocal) msg;
+            System.out.println(protocal);
         }
     }
-
     static class NettyConnectManageHandler extends ChannelDuplexHandler {
 
         private AtomicInteger lossConnectCount = new AtomicInteger(0);
